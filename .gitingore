@@ -1,0 +1,82 @@
+# -----------------------------
+# OS / file manager
+# -----------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# -----------------------------
+# Editor / IDE
+# -----------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# -----------------------------
+# Logs
+# -----------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -----------------------------
+# Environment / secrets
+# Never commit local secrets or API keys.
+# For browser-only side projects, avoid putting secrets in frontend JS.
+# -----------------------------
+.env
+.env.*
+!.env.example
+
+# -----------------------------
+# Node / package managers
+# Keep package-lock.json committed if you use npm dependencies.
+# -----------------------------
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# -----------------------------
+# Build / generated output
+# Useful if you later add Vite/Webpack/Rollup or static-site tooling.
+# -----------------------------
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+.vite/
+
+# -----------------------------
+# Test / coverage
+# -----------------------------
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# -----------------------------
+# Temporary files
+# -----------------------------
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
+
+# -----------------------------
+# Local server / runtime files
+# -----------------------------
+.local/
+*.pid
+*.seed
