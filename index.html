@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <script>
+    (function () {
+      try {
+        var savedTheme = localStorage.getItem("theme");
+        var savedLang = localStorage.getItem("lang");
+        var isDark = savedTheme === "dark";
+        document.documentElement.classList.toggle("dark", isDark);
+        document.documentElement.lang = savedLang === "en" ? "en" : "zh-Hant";
+      } catch (error) {
+        document.documentElement.classList.remove("dark");
+        document.documentElement.lang = "zh-Hant";
+      }
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/gherkin.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked-highlight/lib/index.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    :root {
+      --shell-top: 104px;
+      --shell-bottom: 72px;
+      --editor-font-size: 16px;
+      --preview-font-size: 16px;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      overflow: hidden;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    .shell-main {
+      box-sizing: border-box;
+      height: 100vh;
+      padding-top: var(--shell-top);
+      padding-bottom: var(--shell-bottom);
+    }
+
+    .shell-panel {
+      min-height: 0;
+    }
+
+    .preview-content {
+      font-size: var(--preview-font-size);
+      line-height: 1.75;
+      color: #0f172a;
+    }
+
+    html.dark .preview-content {
+      color: #e2e8f0;
+    }
+
+    .preview-content h1,
+    .preview-content h2,
+    .preview-content h3,
+    .preview-content h4,
+    .preview-content h5,
+    .preview-content h6 {
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 1.25rem 0 0.75rem;
+    }
+
+    .preview-content h1 { font-size: 2rem; }
+    .preview-content h2 { font-size: 1.75rem; }
+    .preview-content h3 { font-size: 1.5rem; }
+    .preview-content h4 { font-size: 1.25rem; }
+    .preview-content h5 { font-size: 1.125rem; }
+    .preview-content h6 { font-size: 1rem; }
+
+    .preview-content p,
+    .preview-content ul,
+    .preview-content ol,
+    .preview-content blockquote,
+    .preview-content pre,
+    .preview-content table {
+      margin: 0 0 1rem;
+    }
+
+    .preview-content a {
+      color: #2563eb;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    html.dark .preview-content a {
+      color: #93c5fd;
+    }
+
+    .preview-content ul,
+    .preview-content ol {
+      padding-left: 1.5rem;
+    }
+
+    .preview-content blockquote {
+      border-left: 4px solid #cbd5e1;
+      padding-left: 1rem;
+      color: #475569;
+    }
+
+    html.dark .preview-content blockquote {
+      border-left-color: #475569;
+      color: #cbd5e1;
+    }
+
+    .preview-content pre {
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      background: #f8fafc;
+      overflow: auto;
+      padding: 1rem;
+    }
+
+    html.dark .preview-content pre {
+      border-color: #334155;
+      background: #0f172a;
+    }
+
+    .preview-content code:not(pre code) {
+      border-radius: 4px;
+      background: #e2e8f0;
+      padding: 0.125rem 0.375rem;
+      font-size: 0.95em;
+    }
+
+    html.dark .preview-content code:not(pre code) {
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+
+    .preview-content hr {
+      border: 0;
+      border-top: 1px solid #e2e8f0;
+      margin: 1.5rem 0;
+    }
+
+    html.dark .preview-content hr {
+      border-top-color: #334155;
+    }
+
+    .preview-content table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .preview-content th,
+    .preview-content td {
+      border: 1px solid #e2e8f0;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+
+    html.dark .preview-content th,
+    html.dark .preview-content td {
+      border-color: #334155;
+    }
+
+    .preview-content th {
+      background: #f8fafc;
+    }
+
+    html.dark .preview-content th {
+      background: #1e293b;
+    }
+
+    .toolbar-button[data-active="true"] {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .mobile-toggle[data-active="true"] {
+      border-color: #2563eb;
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .menu-panel {
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    }
+  </style>
+</head>
+  <body class="bg-slate-50 text-slate-900 transition-colors duration-150 dark:bg-slate-900 dark:text-slate-100">
+  <header id="topbar" class="fixed inset-x-0 top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800/95">
+    <div class="mx-auto flex h-14 items-center justify-between px-4">
+      <div class="flex items-center gap-3">
+        <div class="text-base font-semibold tracking-tight" data-i18n="brand"></div>
+        <div class="hidden text-xs text-slate-500 transition-colors duration-150 sm:block dark:text-slate-400" data-i18n="tagline"></div>
+      </div>
+      <div class="flex items-center gap-2">
+        <details class="relative">
+          <summary class="list-none cursor-pointer rounded border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <span data-i18n="menuFileExport"></span>
+          </summary>
+          <div class="menu-panel absolute right-0 mt-2 w-48 rounded border border-slate-200 bg-white p-1 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800">
+            <button class="block w-full rounded px-3 py-2 text-left text-xs text-slate-400 transition-colors duration-150 dark:text-slate-500" disabled><span data-i18n="menuNewFile"></span></button>
+            <button class="block w-full rounded px-3 py-2 text-left text-xs text-slate-400 transition-colors duration-150 dark:text-slate-500" disabled><span data-i18n="menuExportMarkdown"></span></button>
+            <button class="block w-full rounded px-3 py-2 text-left text-xs text-slate-400 transition-colors duration-150 dark:text-slate-500" disabled><span data-i18n="menuExportHTML"></span></button>
+          </div>
+        </details>
+        <button id="themeToggle" type="button" class="flex items-center gap-2 rounded border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" data-i18n-title="themeToggleTitle">
+          <i id="themeIconLight" data-lucide="sun" class="h-3.5 w-3.5"></i>
+          <i id="themeIconDark" data-lucide="moon" class="hidden h-3.5 w-3.5"></i>
+          <span id="themeLabel"></span>
+        </button>
+        <select id="langSelect" class="rounded border border-slate-200 bg-white px-2 py-1.5 text-xs font-medium text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" data-i18n-title="langSelectorTitle">
+          <option value="zh" data-i18n="langZh"></option>
+          <option value="en" data-i18n="langEn"></option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <div id="toolbar" class="fixed inset-x-0 top-14 z-20 border-b border-slate-200 bg-white transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800">
+    <div class="mx-auto flex items-center justify-between gap-3 px-3 py-2">
+      <div class="flex flex-wrap gap-2">
+        <button class="toolbar-button flex w-16 flex-col items-center justify-center gap-1 rounded border border-slate-200 bg-white px-2 py-2 text-[11px] leading-none text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" data-action="heading" type="button">
+          <i data-lucide="heading" class="h-4 w-4"></i>
+          <span data-i18n="toolbarHeading"></span>
+        </button>
+        <button class="toolbar-button flex w-16 flex-col items-center justify-center gap-1 rounded border border-slate-200 bg-white px-2 py-2 text-[11px] leading-none text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" data-action="bold" type="button">
+          <i data-lucide="bold" class="h-4 w-4"></i>
+          <span data-i18n="toolbarBold"></span>
+        </button>
+        <button class="toolbar-button flex w-16 flex-col items-center justify-center gap-1 rounded border border-slate-200 bg-white px-2 py-2 text-[11px] leading-none text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" data-action="italic" type="button">
+          <i data-lucide="italic" class="h-4 w-4"></i>
+          <span data-i18n="toolbarItalic"></span>
+        </button>
+        <button class="toolbar-button flex w-16 flex-col items-center justify-center gap-1 rounded border border-slate-200 bg-white px-2 py-2 text-[11px] leading-none text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" data-action="link" type="button">
+          <i data-lucide="link-2" class="h-4 w-4"></i>
+          <span data-i18n="toolbarLink"></span>
+        </button>
+        <button class="toolbar-button flex w-16 flex-col items-center justify-center gap-1 rounded border border-slate-200 bg-white px-2 py-2 text-[11px] leading-none text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" data-action="ul" type="button">
+          <i data-lucide="list" class="h-4 w-4"></i>
+          <span data-i18n="toolbarList"></span>
+        </button>
+        <button class="toolbar-button flex w-16 flex-col items-center justify-center gap-1 rounded border border-slate-200 bg-white px-2 py-2 text-[11px] leading-none text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" data-action="ol" type="button">
+          <i data-lucide="list-ordered" class="h-4 w-4"></i>
+          <span data-i18n="toolbarOrdered"></span>
+        </button>
+        <button class="toolbar-button flex w-16 flex-col items-center justify-center gap-1 rounded border border-slate-200 bg-white px-2 py-2 text-[11px] leading-none text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" data-action="code" type="button">
+          <i data-lucide="code-2" class="h-4 w-4"></i>
+          <span data-i18n="toolbarCode"></span>
+        </button>
+        <button class="toolbar-button flex w-16 flex-col items-center justify-center gap-1 rounded border border-slate-200 bg-white px-2 py-2 text-[11px] leading-none text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" data-action="mermaid" type="button">
+          <i data-lucide="workflow" class="h-4 w-4"></i>
+          <span data-i18n="toolbarMermaid"></span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-1 md:hidden">
+        <button id="mobile-edit" class="mobile-toggle rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" type="button" data-i18n="mobileEdit"></button>
+        <button id="mobile-preview" class="mobile-toggle rounded border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200" type="button" data-i18n="mobilePreview"></button>
+      </div>
+    </div>
+  </div>
+
+  <main class="shell-main">
+    <section class="mx-auto h-full w-full px-3">
+      <div class="grid h-full min-h-0 grid-cols-1 md:grid-cols-2">
+        <section id="editor-pane" class="shell-panel flex min-h-0 flex-col bg-white transition-colors duration-150 md:border-r md:border-slate-200 dark:bg-slate-900 dark:md:border-slate-700">
+          <div class="border-b border-slate-200 px-4 py-2 text-xs font-medium text-slate-500 transition-colors duration-150 dark:border-slate-700 dark:text-slate-400" data-i18n="sectionEditor"></div>
+          <textarea id="editor" class="flex-1 min-h-0 resize-none border-0 bg-white p-4 text-slate-900 outline-none transition-colors duration-150 focus:outline-none focus:ring-0 dark:bg-slate-900 dark:text-slate-100"></textarea>
+        </section>
+        <section id="preview-pane" class="shell-panel flex min-h-0 flex-col bg-white transition-colors duration-150 dark:bg-slate-900">
+          <div class="border-b border-slate-200 px-4 py-2 text-xs font-medium text-slate-500 transition-colors duration-150 dark:border-slate-700 dark:text-slate-400" data-i18n="sectionPreview"></div>
+          <div id="previewAlert" class="hidden border-b border-rose-200 bg-rose-50 px-4 py-2 text-xs text-rose-700 transition-colors duration-150 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200" role="status">
+            <span data-i18n="errMermaid"></span>
+          </div>
+          <div id="preview" class="preview-content flex-1 min-h-0 overflow-auto p-4"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer id="footer" class="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur transition-colors duration-150 dark:border-slate-700 dark:bg-slate-800/95">
+    <div class="mx-auto flex min-h-16 items-center justify-between gap-4 px-4 py-3">
+      <div class="flex flex-wrap items-center gap-4 text-xs text-slate-600 transition-colors duration-150 dark:text-slate-300">
+        <div><span data-i18n="footerChars"></span> <span id="charCount" class="font-semibold text-slate-900 transition-colors duration-150 dark:text-slate-100">0</span></div>
+        <div><span data-i18n="footerWords"></span> <span id="wordCount" class="font-semibold text-slate-900 transition-colors duration-150 dark:text-slate-100">0</span></div>
+        <div class="hidden sm:block"><span data-i18n="footerRender"></span> <span class="font-semibold text-blue-600 transition-colors duration-150 dark:text-blue-400" data-i18n="footerLive"></span></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <label for="fontSlider" class="text-xs text-slate-600 transition-colors duration-150 dark:text-slate-300" data-i18n="fontSizeLabel"></label>
+        <input id="fontSlider" class="w-36 accent-blue-600" type="range" min="12" max="24" value="16">
+        <span id="fontValue" class="w-10 text-right text-xs text-slate-600 transition-colors duration-150 dark:text-slate-300">16px</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    if (window.hljs && window.hljsDefineGherkin) {
+      window.hljs.registerLanguage("gherkin", window.hljsDefineGherkin);
+    }
+
+    const markedHighlight = window.markedHighlight;
+
+    marked.setOptions({
+      gfm: true,
+      breaks: true
+    });
+
+    marked.use(markedHighlight({
+        langPrefix: "hljs language-",
+        highlight(code, lang) {
+          const normalized = (lang || "").toLowerCase();
+          const resolved = normalized === "cucumber" ? "gherkin" : normalized;
+
+          if (resolved === "mermaid") {
+            return escapeHtml(code);
+          }
+
+          if (resolved && window.hljs.getLanguage(resolved)) {
+            try {
+              return window.hljs.highlight(code, { language: resolved, ignoreIllegals: true }).value;
+            } catch (error) {
+              return escapeHtml(code);
+            }
+          }
+
+          try {
+            return window.hljs.highlightAuto(code).value;
+          } catch (error) {
+            return escapeHtml(code);
+          }
+        }
+      }));
+
+    const editor = document.getElementById("editor");
+    const preview = document.getElementById("preview");
+    const charCount = document.getElementById("charCount");
+    const wordCount = document.getElementById("wordCount");
+    const fontSlider = document.getElementById("fontSlider");
+    const fontValue = document.getElementById("fontValue");
+    const editorPane = document.getElementById("editor-pane");
+    const previewPane = document.getElementById("preview-pane");
+    const toolbarButtons = Array.from(document.querySelectorAll(".toolbar-button"));
+    const mobileEdit = document.getElementById("mobile-edit");
+    const mobilePreview = document.getElementById("mobile-preview");
+    const themeToggle = document.getElementById("themeToggle");
+    const themeLabel = document.getElementById("themeLabel");
+    const themeIconLight = document.getElementById("themeIconLight");
+    const themeIconDark = document.getElementById("themeIconDark");
+    const langSelect = document.getElementById("langSelect");
+    const previewAlert = document.getElementById("previewAlert");
+    const hljsThemeLink = document.getElementById("hljs-theme");
+    const topbar = document.getElementById("topbar");
+    const toolbar = document.getElementById("toolbar");
+    const footer = document.getElementById("footer");
+    const rootStyle = document.documentElement.style;
+    const themeStorageKey = "theme";
+    const langStorageKey = "lang";
+    const hljsLightHref = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css";
+    const hljsDarkHref = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css";
+
+    const i18nDictionary = {
+      zh: {
+        brand: "筆境",
+        tagline: "專注的 Markdown 寫作空間",
+        pageTitle: "筆境",
+        menuFileExport: "檔案 / 導出",
+        menuNewFile: "新增文件",
+        menuExportMarkdown: "匯出 Markdown",
+        menuExportHTML: "匯出 HTML",
+        themeToggleTitle: "切換主題",
+        themeLight: "晝",
+        themeDark: "夜",
+        langSelectorTitle: "切換語系",
+        langZh: "繁體中文",
+        langEn: "English",
+        toolbarHeading: "標題",
+        toolbarBold: "粗體",
+        toolbarItalic: "斜體",
+        toolbarLink: "連結",
+        toolbarList: "清單",
+        toolbarOrdered: "編號",
+        toolbarCode: "程式碼",
+        toolbarMermaid: "圖表",
+        mobileEdit: "編輯",
+        mobilePreview: "預覽",
+        sectionEditor: "編輯區",
+        sectionPreview: "預覽區",
+        errMermaid: "Mermaid 語法尚未完整，暫不渲染",
+        footerChars: "字數",
+        footerWords: "詞數",
+        footerRender: "即時渲染",
+        footerLive: "運作中",
+        fontSizeLabel: "字級",
+        insertHeading: "標題",
+        insertBold: "粗體",
+        insertItalic: "斜體",
+        insertLinkText: "連結文字",
+        insertListItem: "項目",
+        insertCodeSample: "Hello"
+      },
+      en: {
+        brand: "筆境 (Bijing)",
+        tagline: "Focused Markdown writing space",
+        pageTitle: "Bijing",
+        menuFileExport: "File / Export",
+        menuNewFile: "New file",
+        menuExportMarkdown: "Export Markdown",
+        menuExportHTML: "Export HTML",
+        themeToggleTitle: "Toggle theme",
+        themeLight: "Light",
+        themeDark: "Dark",
+        langSelectorTitle: "Switch language",
+        langZh: "Traditional Chinese",
+        langEn: "English",
+        toolbarHeading: "Heading",
+        toolbarBold: "Bold",
+        toolbarItalic: "Italic",
+        toolbarLink: "Link",
+        toolbarList: "Bullets",
+        toolbarOrdered: "Numbered",
+        toolbarCode: "Code",
+        toolbarMermaid: "Diagram",
+        mobileEdit: "Edit",
+        mobilePreview: "Preview",
+        sectionEditor: "Editor",
+        sectionPreview: "Preview",
+        errMermaid: "Mermaid syntax incomplete, rendering paused",
+        footerChars: "Characters",
+        footerWords: "Words",
+        footerRender: "Live render",
+        footerLive: "On",
+        fontSizeLabel: "Font size",
+        insertHeading: "Heading",
+        insertBold: "Bold",
+        insertItalic: "Italic",
+        insertLinkText: "Link text",
+        insertListItem: "Item",
+        insertCodeSample: "Hello"
+      }
+    };
+
+    function normalizeLanguage(lang) {
+      return lang === "en" ? "en" : "zh";
+    }
+
+    function getStoredLanguage() {
+      try {
+        return localStorage.getItem(langStorageKey);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function setStoredLanguage(lang) {
+      try {
+        localStorage.setItem(langStorageKey, lang);
+      } catch (error) {
+        // Persisting language is best-effort only.
+      }
+    }
+
+    function getI18nValue(key, lang) {
+      const activeLang = normalizeLanguage(lang || document.documentElement.lang || "zh");
+      return i18nDictionary[activeLang]?.[key] ?? i18nDictionary.zh?.[key] ?? key;
+    }
+
+    const initialDocument = [
+      "# 筆境",
+      "",
+      "專注寫作、即時預覽、雙欄排版。",
+      "",
+      "## 重點",
+      "",
+      "- 支援 **粗體** 與 *斜體*",
+      "- 支援 [連結](https://example.com)",
+      "- 支援清單與程式碼高亮",
+      "",
+      "```yaml",
+      "name: 筆境",
+      "mode: light",
+      "language: zh-Hant",
+      "```",
+      "",
+      "```json",
+      "{",
+      "  \"title\": \"筆境\",",
+      "  \"status\": \"ready\"",
+      "}",
+      "```",
+      "",
+      "```gherkin",
+      "Feature: 筆境寫作",
+      "  Scenario: 即時預覽",
+      "    Given 使用者正在輸入 Markdown",
+      "    When 預覽區更新",
+      "    Then 內容應即時顯示",
+      "```",
+      "",
+      "```mermaid",
+      "graph TD",
+      "  A[輸入] --> B[解析]",
+      "  B --> C[預覽]",
+      "```"
+    ].join("\n");
+
+    editor.value = initialDocument;
+    editor.style.fontSize = "16px";
+    preview.style.setProperty("--preview-font-size", "16px");
+
+    const state = {
+      mobileView: "edit",
+      mermaidTimer: null,
+      isMobile: window.matchMedia("(max-width: 767px)").matches,
+      theme: document.documentElement.classList.contains("dark") ? "dark" : "light",
+      lang: normalizeLanguage(getStoredLanguage())
+    };
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function countStats(text) {
+      const compact = text.replace(/\s/g, "");
+      const charTotal = Array.from(compact).length;
+      const tokens = text.match(/[\u3400-\u9fff]+|[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?/g) || [];
+      return { charTotal, wordTotal: tokens.length };
+    }
+
+    function updateStats() {
+      const { charTotal, wordTotal } = countStats(editor.value);
+      charCount.textContent = String(charTotal);
+      wordCount.textContent = String(wordTotal);
+    }
+
+    function setFontSize(px) {
+      const size = `${px}px`;
+      editor.style.fontSize = size;
+      preview.style.setProperty("--preview-font-size", size);
+      fontValue.textContent = size;
+      fontSlider.value = String(px);
+    }
+
+    function getStoredTheme() {
+      try {
+        return localStorage.getItem(themeStorageKey);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function setStoredTheme(theme) {
+      try {
+        localStorage.setItem(themeStorageKey, theme);
+      } catch (error) {
+        // Persisting theme is best-effort only.
+      }
+    }
+
+    function normalizeTheme(theme) {
+      return theme === "dark" ? "dark" : "light";
+    }
+
+    function setHljsTheme(theme) {
+      hljsThemeLink.href = theme === "dark" ? hljsDarkHref : hljsLightHref;
+    }
+
+    function setMermaidTheme(theme) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: theme === "dark" ? "dark" : "default",
+        securityLevel: "loose"
+      });
+    }
+
+    function updateThemeToggle(theme) {
+      const isDark = theme === "dark";
+      themeLabel.textContent = isDark ? getI18nValue("themeDark") : getI18nValue("themeLight");
+      themeToggle.title = getI18nValue("themeToggleTitle");
+      themeToggle.setAttribute("aria-label", getI18nValue("themeToggleTitle"));
+      themeIconLight.classList.toggle("hidden", isDark);
+      themeIconDark.classList.toggle("hidden", !isDark);
+      themeToggle.setAttribute("aria-pressed", String(isDark));
+    }
+
+    function updateLocalizedCopy() {
+      document.title = getI18nValue("pageTitle");
+      document.documentElement.lang = state.lang === "en" ? "en" : "zh-Hant";
+
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        node.textContent = getI18nValue(node.dataset.i18n);
+      });
+
+      document.querySelectorAll("[data-i18n-title]").forEach((node) => {
+        const value = getI18nValue(node.dataset.i18nTitle);
+        node.setAttribute("title", value);
+        node.setAttribute("aria-label", value);
+      });
+
+      if (langSelect) {
+        langSelect.value = state.lang;
+      }
+
+      updateThemeToggle(state.theme);
+    }
+
+    function setLanguage(lang, options = {}) {
+      const nextLang = normalizeLanguage(lang);
+      const persist = options.persist !== false;
+
+      state.lang = nextLang;
+
+      if (persist) {
+        setStoredLanguage(nextLang);
+      }
+
+      updateLocalizedCopy();
+    }
+
+    function renderPreview(immediateMermaid = false) {
+      preview.innerHTML = marked.parse(editor.value);
+      promoteMermaidBlocks();
+      updateStats();
+
+      if (immediateMermaid) {
+        if (state.mermaidTimer) {
+          clearTimeout(state.mermaidTimer);
+          state.mermaidTimer = null;
+        }
+        renderMermaidBlocks();
+        return;
+      }
+
+      scheduleMermaidRender();
+    }
+
+    function applyTheme(theme, options = {}) {
+      const nextTheme = normalizeTheme(theme);
+      const persist = options.persist !== false;
+      const rerender = options.rerender !== false;
+
+      state.theme = nextTheme;
+      document.documentElement.classList.toggle("dark", nextTheme === "dark");
+      setHljsTheme(nextTheme);
+      setMermaidTheme(nextTheme);
+      updateThemeToggle(nextTheme);
+
+      if (persist) {
+        setStoredTheme(nextTheme);
+      }
+
+      if (rerender) {
+        renderPreview(true);
+      }
+    }
+
+    function toggleTheme() {
+      applyTheme(state.theme === "dark" ? "light" : "dark");
+    }
+
+    function setShellSpacing() {
+      const topHeight = topbar.getBoundingClientRect().height + toolbar.getBoundingClientRect().height;
+      const bottomHeight = footer.getBoundingClientRect().height;
+      rootStyle.setProperty("--shell-top", `${Math.ceil(topHeight)}px`);
+      rootStyle.setProperty("--shell-bottom", `${Math.ceil(bottomHeight)}px`);
+    }
+
+    function applyViewportState() {
+      const desktop = window.matchMedia("(min-width: 768px)").matches;
+      const showEditor = desktop || state.mobileView === "edit";
+      const showPreview = desktop || state.mobileView === "preview";
+
+      editorPane.hidden = !showEditor;
+      previewPane.hidden = !showPreview;
+
+      mobileEdit.dataset.active = String(!desktop && state.mobileView === "edit");
+      mobilePreview.dataset.active = String(!desktop && state.mobileView === "preview");
+    }
+
+    function insertText(replacement, selectionOffsetStart = 0, selectionOffsetEnd = 0) {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const before = editor.value.slice(0, start);
+      const selected = editor.value.slice(start, end);
+      const after = editor.value.slice(end);
+      const nextValue = before + replacement(selected || "") + after;
+      editor.value = nextValue;
+
+      const newStart = start + selectionOffsetStart;
+      const newEnd = start + selectionOffsetEnd;
+      editor.focus();
+      editor.setSelectionRange(newStart, newEnd);
+      renderPreview();
+    }
+
+    function insertAtCursor(text) {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const before = editor.value.slice(0, start);
+      const after = editor.value.slice(end);
+      editor.value = before + text + after;
+      const caret = start + text.length;
+      editor.focus();
+      editor.setSelectionRange(caret, caret);
+      renderPreview();
+    }
+
+    function insertBlock(prefix, suffix, placeholder) {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const selected = editor.value.slice(start, end);
+      const content = selected || placeholder;
+      insertAtCursor(`${prefix}${content}${suffix}`);
+    }
+
+    function handleToolbarAction(action) {
+      switch (action) {
+        case "heading":
+          insertAtCursor(`# ${getI18nValue("insertHeading")}`);
+          break;
+        case "bold":
+          insertBlock("**", "**", getI18nValue("insertBold"));
+          break;
+        case "italic":
+          insertBlock("*", "*", getI18nValue("insertItalic"));
+          break;
+        case "link":
+          insertAtCursor(`[${getI18nValue("insertLinkText")}](https://example.com)`);
+          break;
+        case "ul":
+          insertAtCursor(`- ${getI18nValue("insertListItem")}`);
+          break;
+        case "ol":
+          insertAtCursor(`1. ${getI18nValue("insertListItem")}`);
+          break;
+        case "code":
+          insertAtCursor("```js\nconsole.log('Hello');\n```");
+          break;
+        case "mermaid":
+          insertAtCursor("```mermaid\ngraph TD\n  A-->B\n```");
+          break;
+      }
+    }
+
+    function promoteMermaidBlocks() {
+      const mermaidCodeBlocks = Array.from(preview.querySelectorAll("pre code")).filter((node) => {
+        return node.classList.contains("language-mermaid");
+      });
+
+      mermaidCodeBlocks.forEach((codeNode) => {
+        const pre = codeNode.closest("pre");
+        if (!pre) {
+          return;
+        }
+
+        const container = document.createElement("div");
+        container.className = "mermaid";
+        container.textContent = codeNode.textContent || "";
+        pre.replaceWith(container);
+      });
+    }
+
+    async function renderMermaidBlocks() {
+      const nodes = Array.from(preview.querySelectorAll(".mermaid"));
+      if (!nodes.length || !window.mermaid) {
+        previewAlert.classList.add("hidden");
+        return;
+      }
+
+      try {
+        previewAlert.classList.add("hidden");
+        await window.mermaid.run({ nodes });
+      } catch (error) {
+        console.error("Mermaid render failed:", error);
+        previewAlert.classList.remove("hidden");
+      }
+    }
+
+    function scheduleMermaidRender() {
+      if (state.mermaidTimer) {
+        clearTimeout(state.mermaidTimer);
+      }
+
+      state.mermaidTimer = setTimeout(() => {
+        renderMermaidBlocks();
+      }, 300);
+    }
+
+    toolbarButtons.forEach((button) => {
+      button.addEventListener("click", () => handleToolbarAction(button.dataset.action));
+    });
+
+    editor.addEventListener("input", () => renderPreview());
+    editor.addEventListener("scroll", () => {
+      // No scroll sync in MVP, but the hook stays local to the editor.
+    });
+
+    fontSlider.addEventListener("input", () => {
+      setFontSize(Number(fontSlider.value));
+      renderMermaidBlocks();
+    });
+
+    themeToggle.addEventListener("click", toggleTheme);
+
+    langSelect.addEventListener("change", () => {
+      setLanguage(langSelect.value);
+    });
+
+    mobileEdit.addEventListener("click", () => {
+      state.mobileView = "edit";
+      applyViewportState();
+    });
+
+    mobilePreview.addEventListener("click", () => {
+      state.mobileView = "preview";
+      applyViewportState();
+    });
+
+    const resizeObserver = new ResizeObserver(() => {
+      setShellSpacing();
+    });
+
+    resizeObserver.observe(topbar);
+    resizeObserver.observe(toolbar);
+    resizeObserver.observe(footer);
+    window.addEventListener("resize", () => {
+      setShellSpacing();
+      applyViewportState();
+    });
+
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      state.mobileView = "edit";
+    }
+
+    const initialTheme = normalizeTheme(getStoredTheme() || (document.documentElement.classList.contains("dark") ? "dark" : "light"));
+    const initialLanguage = normalizeLanguage(getStoredLanguage());
+    state.lang = initialLanguage;
+    langSelect.value = initialLanguage;
+    updateLocalizedCopy();
+    applyTheme(initialTheme, { persist: false, rerender: false });
+
+    setShellSpacing();
+    applyViewportState();
+    setFontSize(16);
+    renderPreview();
+
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  </script>
+</body>
+</html>
